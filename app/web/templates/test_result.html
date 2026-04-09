@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <h1>Результат</h1>
+    <p>{{ result }}</p>
+    <div class="stack">
+        <form action="/test/start" method="post">
+            <button class="btn btn-primary full" type="submit">Пройти еще раз</button>
+        </form>
+        <a class="btn btn-secondary" href="/">На главную</a>
+    </div>
+</section>
+{% endblock %}

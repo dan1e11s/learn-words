@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <h1>Прогресс</h1>
+    <div class="chips">
+        <a class="chip {% if active_filter == 'all' %}chip-active{% endif %}" href="/progress?filter=all">Все</a>
+        <a class="chip {% if active_filter == 'new' %}chip-active{% endif %}" href="/progress?filter=new">0-49%</a>
+        <a class="chip {% if active_filter == 'learning' %}chip-active{% endif %}" href="/progress?filter=learning">50-99%</a>
+        <a class="chip {% if active_filter == 'mastered' %}chip-active{% endif %}" href="/progress?filter=mastered">100%</a>
+        <a class="chip {% if active_filter == 'recent7' %}chip-active{% endif %}" href="/progress?filter=recent7">7 дней</a>
+    </div>
+    <p class="hint">{{ filter_title }}</p>
+    <div class="list">
+        {% for row in rows %}
+        <article class="item">
+            <p><strong>{{ row["korean"] }}</strong></p>
+            <p>{{ row["russian"] }}</p>
+            <p class="hint">{{ row["progress"] }}% • попыток: {{ row["times_tested"] }}</p>
+        </article>
+        {% else %}
+        <p class="hint">Нет слов по этому фильтру.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

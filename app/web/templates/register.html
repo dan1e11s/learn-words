@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <h1>Регистрация</h1>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form class="stack" action="/register" method="post">
+        <input class="input" type="email" name="email" placeholder="Email" required>
+        <input class="input" type="password" name="password" placeholder="Пароль (минимум 6)" required>
+        <button class="btn btn-primary" type="submit">Создать аккаунт</button>
+    </form>
+    <p class="hint">Уже есть аккаунт? <a href="/login">Войти</a></p>
+</section>
+{% endblock %}

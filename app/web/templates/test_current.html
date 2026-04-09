@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <h1>Тест</h1>
+    <p class="hint">Вопрос {{ question_number }} из {{ total_questions }}</p>
+    {% if current["qtype"] == "choice" %}
+    <p class="question"><strong>{{ current["korean"] }}</strong></p>
+    <form class="stack" action="/test/answer" method="post">
+        {% for option in options %}
+        <button class="btn btn-secondary" type="submit" name="answer_choice" value="{{ loop.index0 }}">{{ option }}</button>
+        {% endfor %}
+    </form>
+    {% else %}
+    <p class="question">Введи корейское слово для: <strong>{{ current["russian"] }}</strong></p>
+    <form class="stack" action="/test/answer" method="post">
+        <input class="input" type="text" name="answer_input" placeholder="Твой ответ" required>
+        <button class="btn btn-primary" type="submit">Ответить</button>
+    </form>
+    {% endif %}
+</section>
+{% endblock %}

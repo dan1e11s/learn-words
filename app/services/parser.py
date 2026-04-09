@@ -23,7 +23,6 @@ def parse_words_batch(raw_text: str) -> tuple[list[tuple[str, str]], list[str]]:
             errors.append(f"Строка {idx}: пустой перевод в списке через запятую")
             continue
 
-        # Нормализуем запись: "a,b , c" -> "a, b, c"
         normalized_russian = ", ".join(dict.fromkeys(translations))
         parsed.append((korean, normalized_russian))
 

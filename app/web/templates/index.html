@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <h1>Главное меню</h1>
+    <div class="stack">
+        <a class="btn btn-primary" href="/words/add">Добавить слова</a>
+        <form action="/test/start" method="post">
+            <button class="btn btn-primary full" type="submit">Пройти тест</button>
+        </form>
+        <a class="btn btn-primary" href="/progress">Посмотреть прогресс</a>
+    </div>
+</section>
+{% endblock %}

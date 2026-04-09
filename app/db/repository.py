@@ -1,9 +1,31 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime
-from typing import Sequence
+from typing import Any, Sequence
 
 import asyncpg
+
+
+class UsersRepository:
+    def __init__(self, pool: asyncpg.Pool) -> None:
+        self.pool = pool
+
+    async def create_user(self, email: str, password_hash: str) -> int | None:
+        query = """
+        INSERT INTO users (email, password_hash)
+        VALUES ($1, $2)
+        ON CONFLICT (email) DO NOTHING
+        RETURNING id
+        """
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(query, email, password_hash)
+        return row["id"] if row else None
+
+    async def get_user_by_email(self, email: str) -> asyncpg.Record | None:
+        query = "SELECT id, email, password_hash FROM users WHERE email = $1"
+        async with self.pool.acquire() as conn:
+            return await conn.fetchrow(query, email)
 
 
 class WordsRepository:
@@ -72,22 +94,14 @@ class WordsRepository:
         UPDATE words
         SET times_tested = times_tested + 1,
             last_tested = NOW(),
-            progress = CASE
-                WHEN $2 THEN LEAST(100, progress + $3)
-                ELSE progress
-            END,
+            progress = CASE WHEN $2 THEN LEAST(100, progress + $3) ELSE progress END,
             interval_days = COALESCE($4, interval_days),
             next_review = COALESCE($5, next_review)
         WHERE id = $1
         """
         async with self.pool.acquire() as conn:
             await conn.execute(
-                query,
-                word_id,
-                is_correct,
-                progress_delta,
-                new_interval_days,
-                new_next_review,
+                query, word_id, is_correct, progress_delta, new_interval_days, new_next_review
             )
 
     async def get_progress_rows(
@@ -122,3 +136,42 @@ class WordsRepository:
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(query, *params)
         return list(rows)
+
+
+class TestSessionRepository:
+    def __init__(self, pool: asyncpg.Pool) -> None:
+        self.pool = pool
+
+    async def start_session(self, user_id: int, queue: list[dict[str, Any]]) -> int:
+        query = """
+        INSERT INTO test_sessions (user_id, payload_json)
+        VALUES ($1, $2::jsonb)
+        RETURNING id
+        """
+        payload = {"queue": queue, "current_index": 0, "correct_count": 0}
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(query, user_id, json.dumps(payload))
+        return row["id"]
+
+    async def get_session(self, session_id: int, user_id: int) -> dict[str, Any] | None:
+        query = "SELECT id, payload_json FROM test_sessions WHERE id = $1 AND user_id = $2"
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(query, session_id, user_id)
+        if not row:
+            return None
+        raw_payload = row["payload_json"]
+        if isinstance(raw_payload, str):
+            payload = json.loads(raw_payload)
+        else:
+            payload = dict(raw_payload)
+        return {"id": row["id"], "payload": payload}
+
+    async def save_session(self, session_id: int, payload: dict[str, Any]) -> None:
+        query = "UPDATE test_sessions SET payload_json = $2::jsonb WHERE id = $1"
+        async with self.pool.acquire() as conn:
+            await conn.execute(query, session_id, json.dumps(payload))
+
+    async def delete_session(self, session_id: int, user_id: int) -> None:
+        query = "DELETE FROM test_sessions WHERE id = $1 AND user_id = $2"
+        async with self.pool.acquire() as conn:
+            await conn.execute(query, session_id, user_id)
