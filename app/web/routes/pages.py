@@ -93,10 +93,17 @@ async def progress_page(
         last_days=days,
         limit=200,
     )
+    total_words = await words_repo.get_total_words_count(user_id=user_id)
     return render(
         request,
         "progress.html",
-        {"title": "Прогресс", "rows": rows, "active_filter": key, "filter_title": title},
+        {
+            "title": "Прогресс",
+            "rows": rows,
+            "active_filter": key,
+            "filter_title": title,
+            "total_words": total_words,
+        },
     )
 
 

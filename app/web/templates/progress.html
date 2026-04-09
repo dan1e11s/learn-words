@@ -2,6 +2,7 @@
 {% block content %}
 <section class="card">
     <h1>Прогресс</h1>
+    <p class="hint">Всего добавлено слов: <strong>{{ total_words }}</strong></p>
     <div class="chips">
         <a class="chip {% if active_filter == 'all' %}chip-active{% endif %}" href="/progress?filter=all">Все</a>
         <a class="chip {% if active_filter == 'new' %}chip-active{% endif %}" href="/progress?filter=new">0-49%</a>

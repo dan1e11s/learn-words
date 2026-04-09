@@ -137,6 +137,12 @@ class WordsRepository:
             rows = await conn.fetch(query, *params)
         return list(rows)
 
+    async def get_total_words_count(self, user_id: int) -> int:
+        query = "SELECT COUNT(*) AS cnt FROM words WHERE user_id = $1"
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(query, user_id)
+        return int(row["cnt"]) if row else 0
+
 
 class TestSessionRepository:
     def __init__(self, pool: asyncpg.Pool) -> None:
