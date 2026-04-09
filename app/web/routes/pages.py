@@ -163,12 +163,17 @@ async def test_current(
     total = len(queue)
 
     if current_index >= total:
+        mistakes = payload.get("mistakes", [])
         await test_repo.delete_session(session_id=session_id, user_id=user_id)
         request.session.pop("test_session_id", None)
         return render(
             request,
             "test_result.html",
-            {"title": "Результат", "result": f"Тест завершен. Результат: {correct_count}/{total}"},
+            {
+                "title": "Результат",
+                "result": f"Тест завершен. Результат: {correct_count}/{total}",
+                "mistakes": mistakes,
+            },
         )
 
     current = queue[current_index]
@@ -178,6 +183,7 @@ async def test_current(
         wrong = [w for w in wrong if w != current["russian"]]
         options, correct_idx = build_choice_options(current["russian"], wrong)
         payload["correct_choice_index"] = correct_idx
+        payload["current_options"] = options
         await test_repo.save_session(session_id=session_id, payload=payload)
 
     return render(
@@ -222,8 +228,16 @@ async def test_answer(
         if answer_choice is None:
             raise HTTPException(status_code=400, detail="Выбери вариант ответа.")
         is_correct = answer_choice == int(payload.get("correct_choice_index", -1))
+        current_options = payload.get("current_options", [])
+        if 0 <= answer_choice < len(current_options):
+            user_answer = current_options[answer_choice]
+        else:
+            user_answer = f"Вариант #{answer_choice + 1}"
+        correct_answer = current["russian"]
     else:
         is_correct = normalize_korean(answer_input) == normalize_korean(current["korean"])
+        user_answer = (answer_input or "").strip()
+        correct_answer = current["korean"]
 
     gain = progress_gain(current["qtype"], current["times_tested"])
     was_mastered = current["progress"] >= 100
@@ -244,7 +258,19 @@ async def test_answer(
 
     if is_correct:
         payload["correct_count"] = payload.get("correct_count", 0) + 1
+    else:
+        mistakes = payload.get("mistakes", [])
+        mistakes.append(
+            {
+                "prompt": current["korean"] if current["qtype"] == "choice" else current["russian"],
+                "correct_answer": correct_answer,
+                "user_answer": user_answer or "Пустой ответ",
+                "question_type": current["qtype"],
+            }
+        )
+        payload["mistakes"] = mistakes
     payload["current_index"] = current_index + 1
     payload.pop("correct_choice_index", None)
+    payload.pop("current_options", None)
     await test_repo.save_session(session_id=session_id, payload=payload)
     return RedirectResponse("/test/current", status_code=303)

@@ -60,8 +60,9 @@ body {
 }
 
 .btn-primary {
-  background: #0b5fff;
+  background: #111;
   color: #fff;
+  border-color: #111;
 }
 
 .btn-secondary {
@@ -102,8 +103,9 @@ body {
 }
 
 .chip-active {
-  background: #e9f0ff;
-  border-color: #0b5fff;
+  background: #111;
+  color: #fff;
+  border-color: #111;
 }
 
 .hint { color: #666; font-size: 14px; }

@@ -3,6 +3,18 @@
 <section class="card">
     <h1>Результат</h1>
     <p>{{ result }}</p>
+    {% if mistakes %}
+    <h2>Ошибки</h2>
+    <div class="list">
+        {% for item in mistakes %}
+        <article class="item">
+            <p><strong>Вопрос:</strong> {{ item["prompt"] }}</p>
+            <p><strong>Твой ответ:</strong> {{ item["user_answer"] }}</p>
+            <p><strong>Правильный ответ:</strong> {{ item["correct_answer"] }}</p>
+        </article>
+        {% endfor %}
+    </div>
+    {% endif %}
     <div class="stack">
         <form action="/test/start" method="post">
             <button class="btn btn-primary full" type="submit">Пройти еще раз</button>
