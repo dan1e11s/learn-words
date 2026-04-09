@@ -47,9 +47,12 @@ class WordsRepository:
         self, user_id: int, exclude_word_id: int, limit: int
     ) -> list[str]:
         query = """
-        SELECT DISTINCT russian
-        FROM words
-        WHERE user_id = $1 AND id <> $2
+        SELECT russian
+        FROM (
+            SELECT DISTINCT russian
+            FROM words
+            WHERE user_id = $1 AND id <> $2
+        ) AS distinct_words
         ORDER BY RANDOM()
         LIMIT $3
         """
