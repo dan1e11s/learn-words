@@ -9,13 +9,22 @@
         <a class="chip {% if active_filter == 'learning' %}chip-active{% endif %}" href="/progress?filter=learning">50-99%</a>
         <a class="chip {% if active_filter == 'mastered' %}chip-active{% endif %}" href="/progress?filter=mastered">100%</a>
     </div>
-    <p class="hint">{{ filter_title }}</p>
+    <p class="hint">{{ filter_title }}: <strong>{{ rows | length }}</strong></p>
     <div class="list">
         {% for row in rows %}
         <article class="item">
-            <p><strong>{{ row["korean"] }}</strong></p>
-            <p>{{ row["russian"] }}</p>
-            <p class="hint">{{ row["progress"] }}% • попыток: {{ row["times_tested"] }}</p>
+            <div class="item-body">
+                <p><strong>{{ row["korean"] }}</strong></p>
+                <p>{{ row["russian"] }}</p>
+                <p class="hint">{{ row["progress"] }}% &bull; попыток: {{ row["times_tested"] }}</p>
+            </div>
+            <div class="item-actions">
+                <a class="btn btn-secondary btn-sm" href="/words/{{ row['id'] }}/edit?back_filter={{ active_filter }}">Изменить</a>
+                <form action="/words/{{ row['id'] }}/delete" method="post" onsubmit="return confirm('Удалить это слово?')">
+                    <input type="hidden" name="back_filter" value="{{ active_filter }}">
+                    <button class="btn btn-danger btn-sm" type="submit">Удалить</button>
+                </form>
+            </div>
         </article>
         {% else %}
         <p class="hint">Нет слов по этому фильтру.</p>

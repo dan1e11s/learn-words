@@ -91,7 +91,6 @@ async def progress_page(
         progress_min=min_p,
         progress_max=max_p,
         last_days=days,
-        limit=200,
     )
     total_words = await words_repo.get_total_words_count(user_id=user_id)
     return render(
@@ -105,6 +104,82 @@ async def progress_page(
             "total_words": total_words,
         },
     )
+
+
+@router.post("/words/{word_id}/delete")
+async def word_delete(
+    request: Request,
+    word_id: int,
+    back_filter: str = Form("all"),
+    user_id: int = Depends(current_user_id_dep),
+    words_repo: WordsRepository = Depends(get_words_repo),
+) -> object:
+    await words_repo.delete_word(word_id=word_id, user_id=user_id)
+    key = back_filter if back_filter in FILTERS else "all"
+    return RedirectResponse(f"/progress?filter={key}", status_code=303)
+
+
+@router.get("/words/{word_id}/edit")
+async def word_edit_page(
+    request: Request,
+    word_id: int,
+    back_filter: str = "all",
+    user_id: int = Depends(current_user_id_dep),
+    words_repo: WordsRepository = Depends(get_words_repo),
+) -> object:
+    word = await words_repo.get_word_by_id(word_id=word_id, user_id=user_id)
+    if not word:
+        return RedirectResponse("/progress", status_code=303)
+    key = back_filter if back_filter in FILTERS else "all"
+    return render(
+        request,
+        "edit_word.html",
+        {"title": "Редактировать слово", "word": word, "back_filter": key, "error": None},
+    )
+
+
+@router.post("/words/{word_id}/edit")
+async def word_edit_submit(
+    request: Request,
+    word_id: int,
+    korean: str = Form(...),
+    russian: str = Form(...),
+    back_filter: str = Form("all"),
+    user_id: int = Depends(current_user_id_dep),
+    words_repo: WordsRepository = Depends(get_words_repo),
+) -> object:
+    korean = korean.strip()
+    russian = russian.strip()
+    key = back_filter if back_filter in FILTERS else "all"
+
+    if not korean or not russian:
+        word = await words_repo.get_word_by_id(word_id=word_id, user_id=user_id)
+        return render(
+            request,
+            "edit_word.html",
+            {
+                "title": "Редактировать слово",
+                "word": word,
+                "back_filter": key,
+                "error": "Поля не могут быть пустыми.",
+            },
+        )
+
+    ok = await words_repo.update_word(word_id=word_id, user_id=user_id, korean=korean, russian=russian)
+    if not ok:
+        word = await words_repo.get_word_by_id(word_id=word_id, user_id=user_id)
+        return render(
+            request,
+            "edit_word.html",
+            {
+                "title": "Редактировать слово",
+                "word": word,
+                "back_filter": key,
+                "error": "Такая пара слов уже существует в вашем словаре.",
+            },
+        )
+
+    return RedirectResponse(f"/progress?filter={key}", status_code=303)
 
 
 @router.post("/test/start")

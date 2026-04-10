@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+    <h1>Редактировать слово</h1>
+    {% if error %}
+    <p class="error">{{ error }}</p>
+    {% endif %}
+    <form action="/words/{{ word['id'] }}/edit" method="post" class="stack">
+        <input type="hidden" name="back_filter" value="{{ back_filter }}">
+        <div class="stack">
+            <label>Корейское слово</label>
+            <input class="input" type="text" name="korean" value="{{ word['korean'] }}" required autocomplete="off">
+        </div>
+        <div class="stack">
+            <label>Русский перевод</label>
+            <input class="input" type="text" name="russian" value="{{ word['russian'] }}" required autocomplete="off">
+        </div>
+        <p class="hint">Прогресс: {{ word['progress'] }}% &bull; Попыток: {{ word['times_tested'] }}</p>
+        <div class="row-actions">
+            <button class="btn btn-primary" type="submit">Сохранить</button>
+            <a class="btn btn-secondary" href="/progress?filter={{ back_filter }}">Отмена</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

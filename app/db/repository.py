@@ -110,11 +110,11 @@ class WordsRepository:
         progress_min: int = 0,
         progress_max: int = 100,
         last_days: int | None = None,
-        limit: int = 200,
+        limit: int = 5000,
     ) -> list[asyncpg.Record]:
         if last_days is None:
             query = """
-            SELECT korean, russian, progress, times_tested, last_tested, next_review
+            SELECT id, korean, russian, progress, times_tested, last_tested, next_review
             FROM words
             WHERE user_id = $1 AND progress BETWEEN $2 AND $3
             ORDER BY progress ASC, korean ASC
@@ -123,7 +123,7 @@ class WordsRepository:
             params = (user_id, progress_min, progress_max, limit)
         else:
             query = """
-            SELECT korean, russian, progress, times_tested, last_tested, next_review
+            SELECT id, korean, russian, progress, times_tested, last_tested, next_review
             FROM words
             WHERE user_id = $1
               AND progress BETWEEN $2 AND $3
@@ -136,6 +136,28 @@ class WordsRepository:
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(query, *params)
         return list(rows)
+
+    async def delete_word(self, word_id: int, user_id: int) -> None:
+        query = "DELETE FROM words WHERE id = $1 AND user_id = $2"
+        async with self.pool.acquire() as conn:
+            await conn.execute(query, word_id, user_id)
+
+    async def get_word_by_id(self, word_id: int, user_id: int) -> asyncpg.Record | None:
+        query = "SELECT id, korean, russian, progress, times_tested FROM words WHERE id = $1 AND user_id = $2"
+        async with self.pool.acquire() as conn:
+            return await conn.fetchrow(query, word_id, user_id)
+
+    async def update_word(self, word_id: int, user_id: int, korean: str, russian: str) -> bool:
+        query = """
+        UPDATE words SET korean = $3, russian = $4
+        WHERE id = $1 AND user_id = $2
+        """
+        try:
+            async with self.pool.acquire() as conn:
+                result = await conn.execute(query, word_id, user_id, korean, russian)
+            return result == "UPDATE 1"
+        except asyncpg.UniqueViolationError:
+            return False
 
     async def get_total_words_count(self, user_id: int) -> int:
         query = "SELECT COUNT(*) AS cnt FROM words WHERE user_id = $1"

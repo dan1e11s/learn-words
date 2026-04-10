@@ -44,6 +44,20 @@ body {
   border: 1px solid #ececec;
   border-radius: 10px;
   padding: 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.item-body { flex: 1; min-width: 0; }
+.item-body p { margin: 2px 0; }
+
+.item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .btn {
@@ -113,3 +127,24 @@ body {
 .ok { color: #0a7c1f; font-size: 14px; }
 .question { font-size: 18px; line-height: 1.4; }
 .preserve-lines { white-space: pre-line; }
+
+.btn-sm {
+  min-height: 32px;
+  font-size: 13px;
+  padding: 5px 10px;
+}
+
+.btn-danger {
+  background: #fff;
+  color: #b70022;
+  border-color: #f0b0bb;
+}
+
+.btn-danger:hover {
+  background: #fff0f3;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+}
